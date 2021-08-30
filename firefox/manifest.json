@@ -1,0 +1,49 @@
+{
+  "name": "TwicPics Debug",
+  "description": "Activate debug mode",
+  "version": "1.0",
+  "manifest_version": 2,
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "twicpics_debug@twic.pics",
+      "strict_min_version": "1.0"
+    }
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/disabled/icon-bw-16.png",
+      "32": "icons/disabled/icon-bw-32.png",
+      "48": "icons/disabled/icon-bw-48.png",
+      "128": "icons/disabled/icon-bw-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/enabled/icon-16.png",
+    "32": "icons/enabled/icon-32.png",
+    "48": "icons/enabled/icon-48.png",
+    "128": "icons/enabled/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_end",
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}

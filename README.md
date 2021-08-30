@@ -1,0 +1,1 @@
+Use the debug mode to replace images by placeholders showing the image dimensions. 
