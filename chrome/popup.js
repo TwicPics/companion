@@ -1,10 +1,15 @@
 function updateIcon() {
     console.log('Icon Clicked')
+
+    var btn = document.getElementById('debug-switch');
+
     chrome.storage.sync.get('debugMode', function (data) {
         let isDebugActive = data.debugMode;
 
         if (isDebugActive === true) {
             isDebugActive = false;
+            btn.checked = false;
+
             chrome.action.setIcon({
                 path: {
                     "16": "/icons/disabled/icon-bw-16.png",
@@ -16,6 +21,8 @@ function updateIcon() {
             });
         } else {
             isDebugActive = true;
+            btn.checked = true;
+
             chrome.action.setIcon({
                 path: {
                     "16": "/icons/enabled/icon-16.png",
@@ -35,6 +42,7 @@ function updateIcon() {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('in DOMContentLoaded event');
     var btn = document.getElementById('debug-switch');
     btn.addEventListener('click', updateIcon);
 });

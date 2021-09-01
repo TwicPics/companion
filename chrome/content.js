@@ -12,6 +12,12 @@ chrome.storage.onChanged.addListener(function (data) {
     }
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('in DOMContentLoaded event');
+    var btn = document.getElementById('debug-switch');
+    btn.addEventListener('click', updateIcon);
+});
+
 
 
 
