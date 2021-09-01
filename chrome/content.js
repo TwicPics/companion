@@ -1,9 +1,7 @@
-
 chrome.storage.onChanged.addListener(function (data) {
     var isDebugActive = data['debugMode'].newValue;
     var root = document.documentElement;
-    console.log("In storage changed listener");
-    console.log(isDebugActive);
+    console.log(`In storage changed listener : isDebugActive = ${isDebugActive}`);
 
     if (isDebugActive === true) {
         root.setAttribute("twic:debug", "true");
@@ -12,13 +10,15 @@ chrome.storage.onChanged.addListener(function (data) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('in DOMContentLoaded event');
-    var btn = document.getElementById('debug-switch');
-    btn.addEventListener('click', updateIcon);
-});
-
-
+window.onload = function () {
+    chrome.storage.sync.get('debugMode', function (data) {
+        let isDebugActive = data.debugMode;
+        if (isDebugActive === true) {
+            var root = document.documentElement;
+            root.setAttribute("twic:debug", "true");
+        }
+    });
+}
 
 
 

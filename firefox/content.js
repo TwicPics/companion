@@ -12,7 +12,15 @@ chrome.storage.onChanged.addListener(function (data) {
     }
 });
 
-
+window.onload = function () {
+    chrome.storage.sync.get('debugMode', function (data) {
+        let isDebugActive = data.debugMode;
+        if (isDebugActive === true) {
+            var root = document.documentElement;
+            root.setAttribute("twic:debug", "true");
+        }
+    });
+}
 
 
 

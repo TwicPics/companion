@@ -1,14 +1,11 @@
 function updateIcon() {
     console.log('Icon Clicked')
-
     var btn = document.getElementById('debug-switch');
-
     chrome.storage.sync.get('debugMode', function (data) {
         let isDebugActive = data.debugMode;
 
         if (isDebugActive === true) {
             isDebugActive = false;
-            btn.checked = false;
 
             chrome.action.setIcon({
                 path: {
@@ -21,7 +18,6 @@ function updateIcon() {
             });
         } else {
             isDebugActive = true;
-            btn.checked = true;
 
             chrome.action.setIcon({
                 path: {
@@ -44,5 +40,9 @@ function updateIcon() {
 document.addEventListener('DOMContentLoaded', function () {
     console.log('in DOMContentLoaded event');
     var btn = document.getElementById('debug-switch');
+    chrome.storage.sync.get('debugMode', function (data) {
+        let isDebugActive = data.debugMode;
+        btn.checked = isDebugActive
+    });
     btn.addEventListener('click', updateIcon);
 });

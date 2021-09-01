@@ -37,5 +37,9 @@ function updateIcon() {
 
 document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('debug-switch');
+    chrome.storage.sync.get('debugMode', function (data) {
+        let isDebugActive = data.debugMode;
+        btn.checked = isDebugActive
+    });
     btn.addEventListener('click', updateIcon);
 });
