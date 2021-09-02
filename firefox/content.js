@@ -1,4 +1,3 @@
-
 chrome.storage.onChanged.addListener(function (data) {
     var isDebugActive = data['debugMode'].newValue;
     var root = document.documentElement;
@@ -6,12 +5,13 @@ chrome.storage.onChanged.addListener(function (data) {
     console.log(isDebugActive);
 
     if (isDebugActive === true) {
-        root.setAttribute("twic:debug", "true");
+        root.setAttribute("twic:debug", "");
     } else {
-        root.setAttribute("twic:debug", "false");
+        root.removeAttribute("twic:debug");
     }
 });
 
+//remove window.onload and utilise domready
 window.onload = function () {
     chrome.storage.sync.get('debugMode', function (data) {
         let isDebugActive = data.debugMode;

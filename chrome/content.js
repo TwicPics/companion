@@ -4,9 +4,9 @@ chrome.storage.onChanged.addListener(function (data) {
     console.log(`In storage changed listener : isDebugActive = ${isDebugActive}`);
 
     if (isDebugActive === true) {
-        root.setAttribute("twic:debug", "true");
+        root.setAttribute("twic:debug", "");
     } else {
-        root.setAttribute("twic:debug", "false");
+        root.removeAttribute("twic:debug");
     }
 });
 
