@@ -1,11 +1,11 @@
 {
-  "name": "TwicPics Debug",
-  "description": "Activate debug mode",
+  "name": "TwicPics Companion",
+  "description": "Makes your life easier when working with TwicPics",
   "version": "1.0",
   "manifest_version": 2,
   "browser_specific_settings": {
     "gecko": {
-      "id": "twicpics_debug@twic.pics",
+      "id": "twicpics_companion@twic.pics",
       "strict_min_version": "1.0"
     }
   },
