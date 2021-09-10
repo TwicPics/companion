@@ -18,6 +18,6 @@ So, just type `npm install` or `yarn`.
 
 ## Maintenance
 
-Creation of `./built` is done using (rollup.js)[https://www.rollupjs.org/guide/en/] and logic is located in `./rollup.config.js`.
+Creation of `./built` is done using [rollup.js](https://www.rollupjs.org/guide/en/) and logic is located in `./rollup.config.js`.
 
 Final versions for each target browser are done in `./pack.js`.
