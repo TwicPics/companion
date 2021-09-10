@@ -1,5 +1,5 @@
 {
-    "extends": "creative-area/es6/module",
+    "extends": "creative-area/es2020/module",
     "env": {
         "browser": true
     },
