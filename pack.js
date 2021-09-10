@@ -33,20 +33,7 @@ const browsers = {
             "browser_specific_settings": undefined,
         } ),
     },
-    "firefox": {
-        "manifest.json": manifestBuffer => {
-            const manifest = JSON.parse( manifestBuffer.toString() );
-            return JSON.stringify( {
-                ...manifest,
-                "action": undefined,
-                "background": {
-                    "scripts": [ manifest.background[ `service_worker` ] ],
-                },
-                "browser_action": manifest.action,
-                "manifest_version": 2,
-            } );
-        },
-    },
+    "firefox": {},
 };
 
 ( async () => {
