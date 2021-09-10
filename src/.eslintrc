@@ -1,0 +1,9 @@
+{
+    "extends": "creative-area/es6/module",
+    "env": {
+        "browser": true
+    },
+    "globals": {
+        "chrome": true
+    }
+}
