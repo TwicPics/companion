@@ -38,9 +38,11 @@ const browsers = {
             const manifest = JSON.parse( manifestBuffer.toString() );
             return JSON.stringify( {
                 ...manifest,
+                "action": undefined,
                 "background": {
                     "scripts": [ manifest.background[ `service_worker` ] ],
                 },
+                "browser_action": manifest.action,
                 "manifest_version": 2,
             } );
         },
