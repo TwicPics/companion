@@ -6,11 +6,11 @@ import { zip } from "zip-a-folder";
 
 const cacheFactory = create => {
     const map = new Map();
-    return async key => {
+    return key => {
         if ( map.has( key ) ) {
             return map.get( key );
         }
-        const value = await create( key );
+        const value = create( key );
         map.set( key, value );
         return value;
     };
