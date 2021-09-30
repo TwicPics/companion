@@ -46,7 +46,9 @@ const defaultBrowserConfig = {
         "sortClassName": true,
         "useShortDoctype": true,
     } ),
-    "*.js": async buffer => ( await minifyJS( buffer.toString() ) ).code,
+    "*.js": async buffer => ( await minifyJS( buffer.toString(), {
+        "module": true,
+    } ) ).code,
     "*.json": buffer => JSON.stringify( JSON.parse( buffer.toString() ) ),
 };
 
