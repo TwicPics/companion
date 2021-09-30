@@ -38,9 +38,7 @@
     "manifest_version": 2,
     "name": "TwicPics Companion",
     "permissions": [
-        "storage",
-        "activeTab",
-        "tabs"
+        "storage"
     ],
     "version": "0.1.0"
 }
