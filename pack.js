@@ -2,8 +2,9 @@
 import CleanCSS from "clean-css";
 import { copy, remove } from "fs-extra";
 import { minify as minifyHTML } from "html-minifier";
+import { minify as minifyJS } from "terser";
 import { readFile, writeFile } from "fs/promises";
-import { relative } from "path";
+import { extname, relative } from "path";
 import { zip } from "zip-a-folder";
 
 const cacheFactory = create => {
@@ -29,9 +30,8 @@ const getTimeFactory = () => {
 };
 
 const defaultBrowserConfig = {
-    "manifest.json": manifestBuffer => JSON.stringify( JSON.parse( manifestBuffer.toString() ) ),
-    "popup.css": cssBuffer => new CleanCSS().minify( cssBuffer.toString() ).styles,
-    "popup.html": htmlBuffer => minifyHTML( htmlBuffer.toString(), {
+    "*.css": buffer => new CleanCSS().minify( buffer.toString() ).styles,
+    "*.html": buffer => minifyHTML( buffer.toString(), {
         "collapseBooleanAttributes": true,
         "collapseWhitespace": true,
         "continueOnParseError": true,
@@ -46,6 +46,8 @@ const defaultBrowserConfig = {
         "sortClassName": true,
         "useShortDoctype": true,
     } ),
+    "*.js": async buffer => ( await minifyJS( buffer.toString() ) ).code,
+    "*.json": buffer => JSON.stringify( JSON.parse( buffer.toString() ) ),
 };
 
 const browsers = {
@@ -71,12 +73,12 @@ browsers.edge = browsers.chrome;
         const dir = `dist/${ browserName }`;
         await copy( `built`, dir, {
             "filter": async ( src, dest ) => {
-                const handler = handlers[ relative( `built`, src ) ];
+                const handler = handlers[ relative( `built`, src ) ] || handlers[ `*${ extname( src ) }` ];
                 if ( handler ) {
                     await writeFile( dest, await handler( await getSource( src ) ) );
                     return false;
                 }
-                return ( handler !== false );
+                return true;
             },
         } );
         console.log( `created ${ dir } in ${ getTime() }ms` );

@@ -5,7 +5,7 @@
         "fs-extra": "10.0.0",
         "html-minifier": "4.0.0",
         "rollup": "2.57.0",
-        "rollup-plugin-terser": "7.0.2",
+        "terser": "5.9.0",
         "zip-a-folder": "1.1.0"
     },
     "description": "Build system for the TwicPics Companion browser extension",

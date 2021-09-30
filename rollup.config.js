@@ -7,12 +7,9 @@ const entries = [ `background.js`, `content.js`, `popup.js` ];
 
 assets.forEach( file => copy( `src/${ file }`, `built/${ file }` ) );
 
-import { terser } from "rollup-plugin-terser";
-
 export default entries.map( entry => ( {
     "input": `src/${ entry }`,
     "output": {
         "file": `built/${ entry }`,
     },
-    "plugins": [ terser() ],
 } ) );
