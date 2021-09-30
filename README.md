@@ -1,10 +1,13 @@
 # TwicPics Companion browser extension build system
 
+## Pre-requisites
+
+- NodeJS 16+
+- NPM 7.24+ or Yarn 1.22+
+
 ## Build
 
-Install the package using your favorite package manager and everything will be built automagically.
-
-So, just type `npm install` or `yarn`.
+Simply type `npm install` or `yarn`.
 
 ## File structure
 
@@ -15,8 +18,8 @@ So, just type `npm install` or `yarn`.
     - file `chrome.zip` for packed chrome extension
     - directory `edge` for unpacked edge extension
     - file `edge.zip` for packed edge extension
-    - directory `firefox` for unpacked chrome extension
-    - file `firefox.zip` for packed chrome extension
+    - directory `firefox` for unpacked firefox extension
+    - file `firefox.zip` for packed firefox extension
 
 ## Maintenance
 
