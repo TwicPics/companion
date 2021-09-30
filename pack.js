@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
+import CleanCSS from "clean-css";
 import { copy, remove } from "fs-extra";
+import { minify as minifyHTML } from "html-minifier";
 import { readFile, writeFile } from "fs/promises";
 import { relative } from "path";
 import { zip } from "zip-a-folder";
@@ -26,15 +28,36 @@ const getTimeFactory = () => {
     };
 };
 
+const defaultBrowserConfig = {
+    "manifest.json": manifestBuffer => JSON.stringify( JSON.parse( manifestBuffer.toString() ) ),
+    "popup.css": cssBuffer => new CleanCSS().minify( cssBuffer.toString() ).styles,
+    "popup.html": htmlBuffer => minifyHTML( htmlBuffer.toString(), {
+        "collapseBooleanAttributes": true,
+        "collapseWhitespace": true,
+        "continueOnParseError": true,
+        "decodeEntities": true,
+        "minifyURLs": true,
+        "removeAttributeQuotes": true,
+        "removeComments": true,
+        "removeEmptyAttributes": true,
+        "removeOptionalTags": true,
+        "removeRedundantAttributes": true,
+        "sortAttributes": true,
+        "sortClassName": true,
+        "useShortDoctype": true,
+    } ),
+};
+
 const browsers = {
     "chrome": {
+        ...defaultBrowserConfig,
         "manifest.json": manifestBuffer => JSON.stringify( {
             ...JSON.parse( manifestBuffer.toString() ),
             "browser_specific_settings": undefined,
         } ),
     },
     "edge": undefined,
-    "firefox": {},
+    "firefox": defaultBrowserConfig,
 };
 
 // edge uses exact same version as chrome

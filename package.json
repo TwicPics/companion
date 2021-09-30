@@ -1,7 +1,9 @@
 {
     "author": "TwicPics <hello@twic.pics> (https://twicpics.com)",
     "dependencies": {
+        "clean-css": "5.2.0",
         "fs-extra": "10.0.0",
+        "html-minifier": "4.0.0",
         "rollup": "2.57.0",
         "rollup-plugin-terser": "7.0.2",
         "zip-a-folder": "1.1.0"
