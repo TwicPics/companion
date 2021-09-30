@@ -286,6 +286,10 @@ template {
  */
 body {
   padding: .75rem 2rem;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .custom-switch {
