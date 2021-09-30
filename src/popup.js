@@ -1,12 +1,12 @@
-import { listenToDebugEnabled, setDebugEnabled } from "./debugEnabled.js";
+import { listenToData, setData } from "./utils.js";
 
 document.addEventListener( `DOMContentLoaded`, () => {
     const debugSwitch = document.getElementById( `debug-switch` );
-    listenToDebugEnabled( ( enabled, firstTime ) => {
+    listenToData( `debugMode`, ( enabled, firstTime ) => {
         debugSwitch.checked = enabled;
         if ( firstTime ) {
             debugSwitch.addEventListener( `click`, () => {
-                setDebugEnabled( debugSwitch.checked );
+                setData( `debugMode`, debugSwitch.checked );
             } );
             debugSwitch.disabled = false;
         }
