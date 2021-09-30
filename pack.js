@@ -33,8 +33,12 @@ const browsers = {
             "browser_specific_settings": undefined,
         } ),
     },
+    "edge": undefined,
     "firefox": {},
 };
+
+// edge uses exact same version as chrome
+browsers.edge = browsers.chrome;
 
 ( async () => {
     await remove( `dist` );
