@@ -78,7 +78,7 @@ browsers.edge = browsers.chrome;
                     await writeFile( dest, await handler( await getSource( src ) ) );
                     return false;
                 }
-                return true;
+                return ( handler !== false );
             },
         } );
         console.log( `created ${ dir } in ${ getTime() }ms` );
