@@ -13,6 +13,8 @@ So, just type `npm install` or `yarn`.
 - Final extensions are located in `./dist`:
     - directory `chrome` for unpacked chrome extension
     - file `chrome.zip` for packed chrome extension
+    - directory `edge` for unpacked edge extension
+    - file `edge.zip` for packed edge extension
     - directory `firefox` for unpacked chrome extension
     - file `firefox.zip` for packed chrome extension
 
