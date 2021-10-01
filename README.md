@@ -20,6 +20,8 @@ Simply type `npm install` or `yarn`.
     - file `edge.zip` for packed edge extension
     - directory `firefox` for unpacked firefox extension
     - file `firefox.zip` for packed firefox extension
+    - directory `opera` for unpacked opera extension
+    - file `opera.zip` for packed opera extension
 
 ## Maintenance
 

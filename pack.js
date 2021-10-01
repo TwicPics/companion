@@ -60,18 +60,20 @@ const browsers = {
             "browser_specific_settings": undefined,
         } ),
     },
-    "edge": undefined,
+    "edge": `chrome`,
     "firefox": defaultBrowserConfig,
+    "opera": `chrome`,
 };
-
-// edge uses exact same version as chrome
-browsers.edge = browsers.chrome;
 
 ( async () => {
     await remove( `dist` );
     const getSource = cacheFactory( readFile );
     const getTime = getTimeFactory();
     await Promise.all( Object.entries( browsers ).map( async ( [ browserName, handlers ] ) => {
+        while ( typeof handlers === `string` ) {
+            // eslint-disable-next-line no-param-reassign
+            handlers = browsers[ handlers ];
+        }
         const dir = `dist/${ browserName }`;
         await copy( `built`, dir, {
             "filter": async ( src, dest ) => {
