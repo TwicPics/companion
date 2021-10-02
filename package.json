@@ -1,5 +1,6 @@
 {
     "author": "TwicPics <hello@twic.pics> (https://twicpics.com)",
+    "babel": {},
     "dependencies": {
         "clean-css": "5.2.1",
         "fs-extra": "10.0.0",
@@ -10,6 +11,8 @@
     },
     "description": "Build system for the TwicPics Companion browser extension",
     "devDependencies": {
+        "@babel/core": "7.15.5",
+        "@babel/eslint-parser": "7.15.7",
         "eslint": "7.32.0",
         "eslint-config-creative-area": "0.11.1"
     },
@@ -17,17 +20,18 @@
         "node": ">=16"
     },
     "eslintConfig": {
-        "extends": "creative-area/es2020/module",
+        "extends": "creative-area/es2021/module",
         "env": {
             "node": true
         },
+        "parser": "@babel/eslint-parser",
         "root": true
     },
     "name": "@twicpics/companion-builder",
     "private": true,
     "repository": "github:twicpics/companion",
     "scripts": {
-        "postinstall": "rollup --config rollup.config.js && node pack"
+        "postinstall": "eslint . && rollup --config rollup.config.js && node pack"
     },
     "type": "module"
 }
