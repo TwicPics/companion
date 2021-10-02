@@ -4,30 +4,12 @@ import { copy, remove } from "fs-extra";
 import { minify as minifyHTML } from "html-minifier";
 import { minify as minifyJS } from "terser";
 import { readFile, writeFile } from "fs/promises";
-import { extname, relative } from "path";
+import { dirname, extname, relative, resolve } from "path";
 import { zip } from "zip-a-folder";
 
-const cacheFactory = create => {
-    const map = new Map();
-    return key => {
-        if ( map.has( key ) ) {
-            return map.get( key );
-        }
-        const value = create( key );
-        map.set( key, value );
-        return value;
-    };
-};
-
-const getTimeFactory = () => {
-    let now = Date.now();
-    return () => {
-        const newNow = Date.now();
-        const time = newNow - now;
-        now = newNow;
-        return time;
-    };
-};
+const baseDir = dirname( new URL( ``, import.meta.url ).pathname );
+const builtDir = resolve( baseDir, `built` );
+const distDir = resolve( baseDir, `dist` );
 
 const defaultBrowserConfig = {
     "*.css": buffer => new CleanCSS().minify( buffer.toString() ).styles,
@@ -65,28 +47,47 @@ const browsers = {
     "opera": `chrome`,
 };
 
-( async () => {
-    await remove( `dist` );
-    const getSource = cacheFactory( readFile );
-    const getTime = getTimeFactory();
-    await Promise.all( Object.entries( browsers ).map( async ( [ browserName, handlers ] ) => {
-        while ( typeof handlers === `string` ) {
-            // eslint-disable-next-line no-param-reassign
-            handlers = browsers[ handlers ];
+const cacheFactory = create => {
+    const map = new Map();
+    return key => {
+        if ( map.has( key ) ) {
+            return map.get( key );
         }
-        const dir = `dist/${ browserName }`;
-        await copy( `built`, dir, {
+        const value = create( key );
+        map.set( key, value );
+        return value;
+    };
+};
+
+const getSource = cacheFactory( readFile );
+const transformCache = cacheFactory( transform => cacheFactory( src => getSource( src ).then( transform ) ) );
+
+const handleBrowser = cacheFactory( async browserName => {
+    const start = Date.now();
+    const dir = resolve( distDir, browserName );
+    const browserConfig = browsers[ browserName ];
+    if ( typeof browserConfig === `string` ) {
+        await handleBrowser( browserConfig );
+        const parentDir = resolve( distDir, browserConfig );
+        await Promise.all( [
+            copy( parentDir, dir ),
+            copy( `${ parentDir }.zip`, `${ dir }.zip` ),
+        ] );
+    } else {
+        await copy( builtDir, dir, {
             "filter": async ( src, dest ) => {
-                const handler = handlers[ relative( `built`, src ) ] || handlers[ `*${ extname( src ) }` ];
-                if ( handler ) {
-                    await writeFile( dest, await handler( await getSource( src ) ) );
+                const transform = browserConfig[ relative( builtDir, src ) ] ?? browserConfig[ `*${ extname( src ) }` ];
+                if ( transform ) {
+                    await writeFile( dest, await transformCache( transform )( src ) );
                     return false;
                 }
-                return ( handler !== false );
+                return ( transform !== false );
             },
         } );
-        console.log( `created ${ dir } in ${ getTime() }ms` );
         await zip( dir, `${ dir }.zip` );
-        console.log( `created ${ dir }.zip in ${ getTime() }ms` );
-    } ) );
-} )();
+    }
+    console.log( `${ browserName } handled in ${ Date.now() - start }ms` );
+} );
+
+await remove( `dist` );
+await Promise.all( Object.keys( browsers ).map( handleBrowser ) );
