@@ -27,6 +27,7 @@
         "parser": "@babel/eslint-parser",
         "root": true
     },
+    "license": "MIT",
     "name": "@twicpics/companion-builder",
     "private": true,
     "repository": "github:twicpics/companion",
