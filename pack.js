@@ -6,6 +6,7 @@ import { minify as minifyJS } from "terser";
 import { readFile, writeFile } from "fs/promises";
 import { dirname, extname, relative, resolve } from "path";
 import { zip } from "zip-a-folder";
+import { exec } from "child_process";
 
 const baseDir = dirname( new URL( ``, import.meta.url ).pathname );
 const builtDir = resolve( baseDir, `built` );
@@ -45,7 +46,24 @@ const browsers = {
     "edge": `chrome`,
     "firefox": defaultBrowserConfig,
     "opera": `chrome`,
+    "safari": `safari`,
 };
+
+/**
+ * executes a shell command and return it as a Promise.
+ * @param cmd {string}
+ * @return {Promise<string>}
+ */
+function execShellCommand( cmd ) {
+    return new Promise( resolvePromise => {
+        exec( cmd, ( error, stdout, stderr ) => {
+            if ( error ) {
+                console.warn( error );
+            }
+            resolvePromise( stdout || stderr );
+        } );
+    } );
+}
 
 const cacheFactory = create => {
     const map = new Map();
@@ -66,13 +84,23 @@ const handleBrowser = cacheFactory( async browserName => {
     const start = Date.now();
     const dir = resolve( distDir, browserName );
     const browserConfig = browsers[ browserName ];
-    if ( typeof browserConfig === `string` ) {
+    if ( browserConfig === `chrome` ) {
         await handleBrowser( browserConfig );
         const parentDir = resolve( distDir, browserConfig );
         await Promise.all( [
             copy( parentDir, dir ),
             copy( `${ parentDir }.zip`, `${ dir }.zip` ),
         ] );
+    } else if ( browserConfig === `safari` ) {
+        // shell command to convert extension to safari
+        const command = `xcrun safari-web-extension-converter built/ --app-name safari --project-location dist/`;
+        await execShellCommand( command ).then( result => {
+            console.log( result );
+        } ).catch( err => {
+            console.warn( err );
+        } );
+        await zip( dir, `${ dir }.zip` );
+
     } else {
         await copy( builtDir, dir, {
             "filter": async ( src, dest ) => {
