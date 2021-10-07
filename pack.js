@@ -1,12 +1,24 @@
 /* eslint-disable no-console */
+import { basename, dirname, extname, relative, resolve } from "path";
 import CleanCSS from "clean-css";
 import { copy, remove } from "fs-extra";
+import { exec } from "child_process";
 import { minify as minifyHTML } from "html-minifier";
 import { minify as minifyJS } from "terser";
 import { readFile, writeFile } from "fs/promises";
-import { dirname, extname, relative, resolve } from "path";
 import { zip } from "zip-a-folder";
-import { exec } from "child_process";
+
+const execShellCommand = cmd => new Promise( done => {
+    exec( cmd, ( error, stdout, stderr ) => {
+        if ( error ) {
+            console.warn( `exec: ${ error }` );
+        }
+        done( {
+            stdout,
+            stderr,
+        } );
+    } );
+} );
 
 const baseDir = dirname( new URL( ``, import.meta.url ).pathname );
 const builtDir = resolve( baseDir, `built` );
@@ -46,24 +58,41 @@ const browsers = {
     "edge": `chrome`,
     "firefox": defaultBrowserConfig,
     "opera": `chrome`,
-    "safari": `safari`,
-};
+    "safari": ( process.platform === `darwin` ) ? [
+        `chrome`,
+        async ( chromeDir, safariDir ) => {
+            // converts chrome extension to safari
+            await execShellCommand( `xcrun safari-web-extension-converter ${
+                chromeDir
+            } --app-name ${
+                basename( safariDir )
+            } --project-location ${
+                dirname( safariDir )
+            } --no-open` );
 
-/**
- * executes a shell command and return it as a Promise.
- * @param cmd {string}
- * @return {Promise<string>}
- */
-function execShellCommand( cmd ) {
-    return new Promise( resolvePromise => {
-        exec( cmd, ( error, stdout, stderr ) => {
-            if ( error ) {
-                console.warn( error );
-            }
-            resolvePromise( stdout || stderr );
-        } );
-    } );
-}
+            // builds safari extension
+            await execShellCommand( `cd ${ safariDir };xcodebuild -scheme "safari (macOS)" build` );
+
+            // zips it
+            await zip( safariDir, `${ safariDir }.zip` );
+
+            // eslint-disable-next-line max-len
+            // https://stackoverflow.com/questions/60148692/what-xcodebuild-commands-are-executed-when-i-run-product-archive-in-xcode
+            // https://medium.com/xcblog/xcodebuild-deploy-ios-app-from-command-line-c6defff0d8b8
+
+            // build
+            // xcodebuild -scheme "safari (macOS)" build
+
+            // archive
+            // xcodebuild -scheme "safari (macOS)" archive
+            // xcodebuild archive -project safari.xcodeproj -scheme "safari (macOS)" -archivePath /dist/safari
+
+            // export (base command)
+            // eslint-disable-next-line max-len
+            // xcodebuild -exportArchive -archivePath <xcarchivepath> -exportPath <destinationpath> -exportOptionsPlist <path>
+        },
+    ] : console.warn( `You need to be on a MacOS machine to build the Safari extension.` ),
+};
 
 const cacheFactory = create => {
     const map = new Map();
@@ -83,45 +112,25 @@ const transformCache = cacheFactory( transform => cacheFactory( src => getSource
 const handleBrowser = cacheFactory( async browserName => {
     const start = Date.now();
     const dir = resolve( distDir, browserName );
-    const browserConfig = browsers[ browserName ];
-    if ( browserConfig === `chrome` ) {
+    let browserData = browsers[ browserName ];
+    if ( !browserData ) {
+        return;
+    }
+    if ( !Array.isArray( browserData ) ) {
+        browserData = [ browserData ];
+    }
+    const [ browserConfig, postHandler ] = browserData;
+    if ( typeof browserConfig === `string` ) {
         await handleBrowser( browserConfig );
         const parentDir = resolve( distDir, browserConfig );
-        await Promise.all( [
-            copy( parentDir, dir ),
-            copy( `${ parentDir }.zip`, `${ dir }.zip` ),
-        ] );
-    } else if ( browserConfig === `safari` ) {
-        // shell command to convert extension to safari
-        let command = `xcrun safari-web-extension-converter built/ --app-name safari --project-location dist/ \
-        --no-open`;
-        await execShellCommand( command ).then( () => {
-            console.log( `Extension converted to safari` );
-        } ).catch( err => {
-            console.warn( err );
-        } );
-
-        // https://stackoverflow.com/questions/60148692/what-xcodebuild-commands-are-executed-when-i-run-product-archive-in-xcode
-        // https://medium.com/xcblog/xcodebuild-deploy-ios-app-from-command-line-c6defff0d8b8
-
-        // build
-        // xcodebuild -scheme "safari (macOS)" build
-
-        // archive
-        // xcodebuild -scheme "safari (macOS)" archive
-        // xcodebuild archive -project safari.xcodeproj -scheme "safari (macOS)" -archivePath /dist/safari
-
-        // export (base command)
-        // xcodebuild -exportArchive -archivePath <xcarchivepath> -exportPath <destinationpath> -exportOptionsPlist <path>
-
-        command = `cd dist/safari;xcodebuild -scheme "safari (macOS)" build`;
-        await execShellCommand( command ).then( () => {
-            console.log( `Extension built for safari` );
-        } ).catch( err => {
-            console.warn( err );
-        } );
-        await zip( dir, `${ dir }.zip` );
-
+        if ( postHandler ) {
+            await postHandler( parentDir, dir );
+        } else {
+            await Promise.all( [
+                copy( parentDir, dir ),
+                copy( `${ parentDir }.zip`, `${ dir }.zip` ),
+            ] );
+        }
     } else {
         await copy( builtDir, dir, {
             "filter": async ( src, dest ) => {
