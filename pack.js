@@ -93,9 +93,30 @@ const handleBrowser = cacheFactory( async browserName => {
         ] );
     } else if ( browserConfig === `safari` ) {
         // shell command to convert extension to safari
-        const command = `xcrun safari-web-extension-converter built/ --app-name safari --project-location dist/`;
-        await execShellCommand( command ).then( result => {
-            console.log( result );
+        let command = `xcrun safari-web-extension-converter built/ --app-name safari --project-location dist/ \
+        --no-open`;
+        await execShellCommand( command ).then( () => {
+            console.log( `Extension converted to safari` );
+        } ).catch( err => {
+            console.warn( err );
+        } );
+
+        // https://stackoverflow.com/questions/60148692/what-xcodebuild-commands-are-executed-when-i-run-product-archive-in-xcode
+        // https://medium.com/xcblog/xcodebuild-deploy-ios-app-from-command-line-c6defff0d8b8
+
+        // build
+        // xcodebuild -scheme "safari (macOS)" build
+
+        // archive
+        // xcodebuild -scheme "safari (macOS)" archive
+        // xcodebuild archive -project safari.xcodeproj -scheme "safari (macOS)" -archivePath /dist/safari
+
+        // export (base command)
+        // xcodebuild -exportArchive -archivePath <xcarchivepath> -exportPath <destinationpath> -exportOptionsPlist <path>
+
+        command = `cd dist/safari;xcodebuild -scheme "safari (macOS)" build`;
+        await execShellCommand( command ).then( () => {
+            console.log( `Extension built for safari` );
         } ).catch( err => {
             console.warn( err );
         } );
