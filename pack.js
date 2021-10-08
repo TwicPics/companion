@@ -8,15 +8,16 @@ import { minify as minifyJS } from "terser";
 import { readFile, writeFile } from "fs/promises";
 import { zip } from "zip-a-folder";
 
-const execShellCommand = cmd => new Promise( done => {
+const execShellCommand = cmd => new Promise( ( ok, nok ) => {
     exec( cmd, ( error, stdout, stderr ) => {
         if ( error ) {
-            console.warn( `exec: ${ error }` );
+            nok( error );
+        } else {
+            ok( {
+                stdout,
+                stderr,
+            } );
         }
-        done( {
-            stdout,
-            stderr,
-        } );
     } );
 } );
 
@@ -68,14 +69,11 @@ const browsers = {
                 basename( safariDir )
             } --project-location ${
                 dirname( safariDir )
-            } --no-open` );
-
+            } --copy-resources --no-open` );
             // builds safari extension
             await execShellCommand( `cd ${ safariDir };xcodebuild -scheme "safari (macOS)" build` );
-
-            // zips it
-            await zip( safariDir, `${ safariDir }.zip` );
-
+            // tells it's handled
+            return true;
             // eslint-disable-next-line max-len
             // https://stackoverflow.com/questions/60148692/what-xcodebuild-commands-are-executed-when-i-run-product-archive-in-xcode
             // https://medium.com/xcblog/xcodebuild-deploy-ios-app-from-command-line-c6defff0d8b8
@@ -111,38 +109,42 @@ const transformCache = cacheFactory( transform => cacheFactory( src => getSource
 
 const handleBrowser = cacheFactory( async browserName => {
     const start = Date.now();
-    const dir = resolve( distDir, browserName );
-    let browserData = browsers[ browserName ];
-    if ( !browserData ) {
-        return;
-    }
-    if ( !Array.isArray( browserData ) ) {
-        browserData = [ browserData ];
-    }
-    const [ browserConfig, postHandler ] = browserData;
-    if ( typeof browserConfig === `string` ) {
-        await handleBrowser( browserConfig );
-        const parentDir = resolve( distDir, browserConfig );
-        if ( postHandler ) {
-            await postHandler( parentDir, dir );
-        } else {
-            await Promise.all( [
-                copy( parentDir, dir ),
-                copy( `${ parentDir }.zip`, `${ dir }.zip` ),
-            ] );
+    try {
+        const dir = resolve( distDir, browserName );
+        let browserData = browsers[ browserName ];
+        if ( !browserData ) {
+            return;
         }
-    } else {
-        await copy( builtDir, dir, {
-            "filter": async ( src, dest ) => {
-                const transform = browserConfig[ relative( builtDir, src ) ] ?? browserConfig[ `*${ extname( src ) }` ];
-                if ( transform ) {
-                    await writeFile( dest, await transformCache( transform )( src ) );
-                    return false;
-                }
-                return ( transform !== false );
-            },
-        } );
-        await zip( dir, `${ dir }.zip` );
+        if ( !Array.isArray( browserData ) ) {
+            browserData = [ browserData ];
+        }
+        const [ browserConfig, postHandler ] = browserData;
+        if ( typeof browserConfig === `string` ) {
+            await handleBrowser( browserConfig );
+            const parentDir = resolve( distDir, browserConfig );
+            const handled = postHandler && await postHandler( parentDir, dir );
+            if ( !handled ) {
+                await Promise.all( [
+                    copy( parentDir, dir ),
+                    copy( `${ parentDir }.zip`, `${ dir }.zip` ),
+                ] );
+            }
+        } else {
+            await copy( builtDir, dir, {
+                "filter": async ( src, dest ) => {
+                    const transform =
+                        browserConfig[ relative( builtDir, src ) ] ?? browserConfig[ `*${ extname( src ) }` ];
+                    if ( transform ) {
+                        await writeFile( dest, await transformCache( transform )( src ) );
+                        return false;
+                    }
+                    return ( transform !== false );
+                },
+            } );
+            await zip( dir, `${ dir }.zip` );
+        }
+    } catch ( e ) {
+        console.log( `something went wrong handling ${ browserName }: ${ e }` );
     }
     console.log( `${ browserName } handled in ${ Date.now() - start }ms` );
 } );
