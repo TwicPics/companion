@@ -23,6 +23,7 @@ const execShellCommand = cmd => new Promise( ( ok, nok ) => {
 } );
 
 const baseDir = dirname( new URL( ``, import.meta.url ).pathname );
+const assetsDir = resolve( baseDir, `assets` );
 const builtDir = resolve( baseDir, `built` );
 const distDir = resolve( baseDir, `dist` );
 
@@ -76,6 +77,11 @@ const browsers = {
             } --app-name twicpics-companion --project-location ${
                 safariDir
             } --copy-resources --no-open` );
+            // puts higher resolution icon
+            await copy(
+                resolve( assetsDir, `safari-icon.png` ),
+                resolve( safariDir, `twicpics-companion/Shared (App)/Resources/Icon.png` )
+            );
             // cleans up previously built ones
             await Promise.all( ( await getBuildDirs() ).map( dir => remove( dir ) ) );
             // builds safari extension
