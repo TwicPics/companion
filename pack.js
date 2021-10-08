@@ -84,9 +84,6 @@ const browsers = {
             }/twicpics-companion; xcodebuild -scheme "twicpics-companion (macOS)" build -configuration Release` );
             // get build dir
             const [ buildDir ] = await getBuildDirs();
-            // cleans safari folder and re-creates it
-            await remove( safariDir );
-            await mkdir( safariDir );
             // copies extension
             await copy(
                 resolve( buildDir, `Build/Products/Release/twicpics-companion.app` ),
