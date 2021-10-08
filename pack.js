@@ -1,11 +1,12 @@
 /* eslint-disable no-console */
-import { basename, dirname, extname, relative, resolve } from "path";
 import CleanCSS from "clean-css";
 import { copy, remove } from "fs-extra";
+import { dirname, extname, relative, resolve } from "path";
 import { exec } from "child_process";
+import { homedir } from "os";
 import { minify as minifyHTML } from "html-minifier";
 import { minify as minifyJS } from "terser";
-import { readFile, writeFile } from "fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import { zip } from "zip-a-folder";
 
 const execShellCommand = cmd => new Promise( ( ok, nok ) => {
@@ -62,32 +63,37 @@ const browsers = {
     "safari": ( process.platform === `darwin` ) ? [
         `chrome`,
         async ( chromeDir, safariDir ) => {
+            // utility to get XCode builds
+            const rTC = /^twicpics-companion-/;
+            const baseBuildDir = `${ homedir() }/Library/Developer/XCode/DerivedData`;
+            const getBuildDirs = () => readdir( baseBuildDir ).then(
+                files => files.flatMap( file => ( rTC.test( file ) ? [ resolve( baseBuildDir, file ) ] : [] ) )
+            );
+            await mkdir( safariDir );
             // converts chrome extension to safari
             await execShellCommand( `xcrun safari-web-extension-converter ${
                 chromeDir
-            } --app-name ${
-                basename( safariDir )
-            } --project-location ${
-                dirname( safariDir )
+            } --app-name twicpics-companion --project-location ${
+                safariDir
             } --copy-resources --no-open` );
+            // cleans up previously built ones
+            await Promise.all( ( await getBuildDirs() ).map( dir => remove( dir ) ) );
             // builds safari extension
-            await execShellCommand( `cd ${ safariDir };xcodebuild -scheme "safari (macOS)" build` );
+            await execShellCommand( `cd ${
+                safariDir
+            }/twicpics-companion; xcodebuild -scheme "twicpics-companion (macOS)" build -configuration Release` );
+            // get build dir
+            const [ buildDir ] = await getBuildDirs();
+            // cleans safari folder and re-creates it
+            await remove( safariDir );
+            await mkdir( safariDir );
+            // copies extension
+            await copy(
+                resolve( buildDir, `Build/Products/Release/twicpics-companion.app` ),
+                resolve( safariDir, `twicpics-companion.app` )
+            );
             // tells it's handled
             return true;
-            // eslint-disable-next-line max-len
-            // https://stackoverflow.com/questions/60148692/what-xcodebuild-commands-are-executed-when-i-run-product-archive-in-xcode
-            // https://medium.com/xcblog/xcodebuild-deploy-ios-app-from-command-line-c6defff0d8b8
-
-            // build
-            // xcodebuild -scheme "safari (macOS)" build
-
-            // archive
-            // xcodebuild -scheme "safari (macOS)" archive
-            // xcodebuild archive -project safari.xcodeproj -scheme "safari (macOS)" -archivePath /dist/safari
-
-            // export (base command)
-            // eslint-disable-next-line max-len
-            // xcodebuild -exportArchive -archivePath <xcarchivepath> -exportPath <destinationpath> -exportOptionsPlist <path>
         },
     ] : console.warn( `You need to be on a MacOS machine to build the Safari extension.` ),
 };
